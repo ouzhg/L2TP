@@ -1,0 +1,116 @@
+theta = i(x) ^ set(x,y) -> cvr(z) ^ set(z,y)
+
+4->L4
+	4.1		~succ(y,z) ^ s(x,y) -> (t(x,max) <-> theta(x,y) ) | FALSE
+	4.2		~s(x,z) ^ s(x,y) -> (t(x,max) <-> theta(x,y) )
+////////////////////////////////////////////////////////////////////////////////////
+4.1->R4
+	4.11	~succ(y,z) ^ s(x,y) -> (t(x,max) -> theta(x,y)) | FALSE
+	4.12	~succ(y,z) ^ s(x,y) -> (theta(x,y) -> t(x,max)) | FALSE
+
+4.2->R4
+	4.21	~s(x,z) ^ s(x,y) -> (t(x,max) -> theta(x,y))
+	4.22	~s(x,z) ^ s(x,y) -> (theta(x,y) -> t(x,max))
+////////////////////////////////////////////////////////////////////////////////////
+4.11->R5
+	4.111	~succ(y,z) ^ s(x,y) ^ t(x,max) -> theta(x,y)
+	4.112	~succ(y,z) ^ s(x,y) ^ ~theta(x,y) -> ~t(x,max)
+
+4.12->R5
+	4.121	~succ(y,z) ^ s(x,y) ^ theta(x,y) -> t(x,max) | FALSE
+	4.122	~succ(y,z) ^ s(x,y) ^ ~t(x,max) -> ~theta(x,y) |FALSE
+
+4.21->R5
+	4.211	~s(x,z) ^ s(x,y) ^ t(x,max) -> theta(x,y)
+	4.212	~s(x,z) ^ s(x,y) ^ ~theta(x,y) -> ~t(x,max)
+
+4.22->R5
+	4.221	~s(x,z) ^ s(x,y) ^ theta(x,y) -> t(x,max)
+	4.222	~s(x,z) ^ s(x,y) ^ ~t(x,max) -> ~theta(x,y)
+////////////////////////////////////////////////////////////////////////////////////
+4.111->R5
+	4.1111	~succ(y,z) ^ s(x,y) ^ t(x,max) ^ i(X) ^ set(X,Y) -> cvr(Z) ^ set(Z,Y)
+	4.1112	~succ(y,z) ^ s(x,y) ^ t(x,max) ^  (~cvr(Z) v ~set(Z,Y))-> ~i(X) v ~set(X,Y)
+4.112
+	4.1121	~succ(y,z) ^ s(x,y) ^ ~~(i(X) ^ set(X,Y)) ^ ~cvr(Z) -> ~t(x,max)
+	4.1122	~succ(y,z) ^ s(x,y) ^ ~~(i(X) ^ set(X,Y)) ^ ~set(Z,Y) -> ~t(x,max)
+
+4.121->L5
+	4.1211	~succ(y,z) ^ s(x,y) ^ ~(i(x) ^ set(x,y)) -> t(x,max)
+	4.1212	~succ(y,z) ^ s(x,y) ^ cvr(z) ^ set(z,y) -> t(x,max)
+	4.1213	~succ(y,z) ^ s(x,y) -> (i(x) ^ set(x,y)) v ~(cvr(z) ^ set(z,y)) v t(x,max)
+
+4.122
+			~succ(y,z) ^ s(x,y) ^ ~t(x,max) -> (~~(i(x) ^ set(x,y)) ^ ~(cvr(z) ^ set(z,y))) | FALSE
+			~succ(y,z) ^ s(x,y) ^ ~t(x,max) -> ((~~i(x) ^ ~~set(x,y)) ^ (~cvr(z) v ~set(z,y))) | FALSE
+	4.1221  ~succ(y,z) ^ s(x,y) ^ ~t(x,max) -> (~~i(x) ^ ~~set(x,y)) | FALSE
+	4.1222  ~succ(y,z) ^ s(x,y) ^ ~t(x,max) -> (~cvr(z) v ~set(z,y)))
+
+4.211->R5
+	4.2111	~s(x,z) ^ s(x,y) ^ t(x,max) ^ i(X) ^ set(X,Y) -> cvr(Z) ^ set(Z,Y)
+	4.2112	~s(x,z) ^ s(x,y) ^ t(x,max) ^  (~cvr(Z) v ~set(Z,Y))-> ~i(X) v ~set(X,Y)
+4.212
+	4.2121	~s(x,z) ^ s(x,y) ^ ~~(i(X) ^ set(X,Y)) ^ ~cvr(Z) -> ~t(x,max)
+	4.2122	~s(x,z) ^ s(x,y) ^ ~~(i(X) ^ set(X,Y)) ^ ~set(Z,Y) -> ~t(x,max)
+
+4.222
+			~s(x,z) ^ s(x,y) ^ ~t(x,max) -> ~~(i(x) ^ set(x,y)) ^ ~(cvr(z) ^ set(z,y))
+			~s(x,z) ^ s(x,y) ^ ~t(x,max) -> (~~i(x) ^ ~~set(x,y)) ^ (~cvr(z) v ~set(z,y)) | FALSE
+	4.2221  ~s(x,z) ^ s(x,y) ^ ~t(x,max) -> (~~i(x) ^ ~~set(x,y)) | FALSE
+	4.2222  ~s(x,z) ^ s(x,y) ^ ~t(x,max) -> (~cvr(z) v ~set(z,y)) | FALSE
+
+
+////////////////////////////////////////////////////////////////////////////////////
+4.1111->R4
+	4.11111	~succ(y,z) ^ s(x,y) ^ t(x,max) ^ i(X) ^ set(X,Y) -> cvr(Z)			12
+	4.11112	~succ(y,z) ^ s(x,y) ^ t(x,max) ^ i(X) ^ set(X,Y) -> set(Z,Y)		13
+4.1112->R4
+	4.11121	~succ(y,z) ^ s(x,y) ^ t(x,max) ^ ~cvr(Z) -> ~i(X) v ~set(X,Y)		14
+	4.11122	~succ(y,z) ^ s(x,y) ^ t(x,max) ^ ~set(Z,Y) -> ~i(X) v ~set(X,Y) 	15
+
+4.1121
+			~succ(y,z) ^ s(x,y) ^ ~~(i(X) ^ set(X,Y)) ^ ~cvr(Z) -> ~t(x,max)	16
+4.1122
+			~succ(y,z) ^ s(x,y) ^ ~~(i(X) ^ set(X,Y)) ^ ~set(Z,Y) -> ~t(x,max)	17
+------------------------------------------------------------------------------------
+4.1211->L4
+	4.12111	~succ(y,z) ^ s(x,y) ^ ~i(x)) -> t(x,max)							18
+	4.12112	~succ(y,z) ^ s(x,y) ^ ~(set(x,y) -> t(x,max)						19
+4.1212
+	4.12121	~succ(y,z) ^ s(x,y) ^ cvr(z) ^ set(z,y) -> t(x,max)					20
+4.1213
+	4.12131	~succ(y,z) ^ s(x,y) -> i(x) v ~cvr(z) v ~set(z,y) v t(x,max)		21
+	4.12132	~succ(y,z) ^ s(x,y) -> set(x,y) v ~cvr(z) v ~set(z,y) v t(x,max)	22
+
+4.1221	
+	4.12211	~succ(y,z) ^ s(x,y) ^ ~t(x,max) -> ~~i(x)							23
+	4.12212	~succ(y,z) ^ s(x,y) ^ ~t(x,max) -> ~~set(x,y)						24
+4.1222
+	4.12221	~succ(y,z) ^ s(x,y) ^ ~t(x,max) -> (~cvr(z) v ~set(z,y))			25
+------------------------------------------------------------------------------------
+4.2111->R4
+	4.21111	~s(x,z) ^ s(x,y) ^ t(x,max) ^ i(X) ^ set(X,Y) -> cvr(Z)				26
+	4.21112	~s(x,z) ^ s(x,y) ^ t(x,max) ^ i(X) ^ set(X,Y) -> set(Z,Y)			27
+4.2112->R4
+	4.21121	~s(x,z) ^ s(x,y) ^ t(x,max) ^ ~cvr(Z) -> ~i(X) v ~set(X,Y)			28
+	4.21122	~s(x,z) ^ s(x,y) ^ t(x,max) ^ ~set(Z,Y) -> ~i(X) v ~set(X,Y) 		29
+
+4.2121
+			~s(x,z) ^ s(x,y) ^ ~~(i(X) ^ set(X,Y)) ^ ~cvr(Z) -> ~t(x,max)		30
+4.2122
+			~s(x,z) ^ s(x,y) ^ ~~(i(X) ^ set(X,Y)) ^ ~set(Z,Y) -> ~t(x,max)		31
+------------------------------------------------------------------------------------
+4.2211->L4
+	4.22111	~s(x,z) ^ s(x,y) ^ ~i(x)) -> t(x,max)								32
+	4.22112	~s(x,z) ^ s(x,y) ^ ~(set(x,y) -> t(x,max)							33
+4.2212
+	4.22121	~s(x,z) ^ s(x,y) ^ cvr(z) ^ set(z,y) -> t(x,max)					34
+4.2213
+	4.22131	~s(x,z) ^ s(x,y) -> i(x) v ~cvr(z) v ~set(z,y) v t(x,max)			35
+	4.22132	~s(x,z) ^ s(x,y) -> set(x,y) v ~cvr(z) v ~set(z,y) v t(x,max)		36
+
+4.2221	
+	4.22211	~s(x,z) ^ s(x,y) ^ ~t(x,max) -> ~~i(x)								37
+	4.22212	~s(x,z) ^ s(x,y) ^ ~t(x,max) -> ~~set(x,y)							38
+4.2222
+	4.22221	~s(x,z) ^ s(x,y) ^ ~t(x,max) -> (~cvr(z) v ~set(z,y))				39
