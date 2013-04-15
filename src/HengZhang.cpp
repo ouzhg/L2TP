@@ -42,30 +42,29 @@ _formula* HengZhang_recordQuantifier(_formula* fml)
     terms_MAX.clear();
     
 	int i = 0;
-    while(true)
+
+    while(fml->formula_type == UNIV)
     {
-        if(fml->formula_type == UNIV)
-        {
-            terms_X.push_back(fml->variable_id);
-        }
-        else if(fml->formula_type == EXIS)
-        {
-			terms_Y  .push_back(fml->variable_id);
-            terms_MIN.push_back(symbol_MIN);
-            terms_MAX.push_back(symbol_MAX);
-			
-			sprintf(str_buf,"NV_%d",i++);
-            terms_Z  .push_back(HengZhang_addSymbol(str_buf, VARIABLE, 0));
-        }
-        else
-        {
-            break;
-        }
-		
-		fml_temp = fml;
-		fml = fml->subformula_l;
-		free(fml_temp);
+        terms_X.push_back(fml->variable_id);
+
+        fml_temp = fml;
+        fml = fml->subformula_l;
+        free(fml_temp);
     }
+    while(fml->formula_type == EXIS)
+    {
+        terms_Y  .push_back(fml->variable_id);
+        terms_MIN.push_back(symbol_MIN);
+        terms_MAX.push_back(symbol_MAX);
+
+        sprintf(str_buf,"NV_%d",i++);
+        terms_Z  .push_back(HengZhang_addSymbol(str_buf, VARIABLE, 0));
+
+        fml_temp = fml;
+        fml = fml->subformula_l;
+        free(fml_temp);
+    }
+
     return fml;
 }
 

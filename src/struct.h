@@ -115,9 +115,13 @@ typedef struct __formulas {
 	struct __formulas* remained_formulas;
 } _formulas;
 ////////////////////////////////////////////////////////////////////////////////
-typedef struct __rules {
-	_formulas* head;
+typedef struct __rule {
+    _formulas* head;
 	_formulas* body;
+}_rule;
+
+typedef struct __rules {
+	_rule* curr_rule;
 	struct __rules* remained_rules;
 } _rules;
 

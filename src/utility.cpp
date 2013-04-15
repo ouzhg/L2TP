@@ -72,6 +72,30 @@ bool is_negative ( const _formula* phi,
     return false;
 }
 
+bool is_universal(_formula* fml)
+{
+	assert(fml);
+	
+	switch(fml->formula_type)
+	{
+		case ATOM:
+			return true;
+		case CONJ:
+		case DISJ:
+		case IMPL:
+			return is_universal(fml->subformula_l) && is_universal(fml->subformula_r);
+		case NEGA:
+		case UNIV:
+			return is_universal(fml->subformula_l);
+		case EXIS:
+			return false;
+		default:
+			assert(0);
+	}
+	
+	return false;
+}
+
 // symbol operations
 ////////////////////////////////////////////////////////////////////////////////
 int add_symbol ( const char* name, SYMBOL_TYPE type, int arity )
@@ -822,233 +846,6 @@ void output_formulas(FILE* out, const _formulas* fmls)
 	}
 }
 
-//rules
-///////////////////////////////////////////////////////////////////////////////
-_rules* convert_rules(_formulas* fmls)
-{
-	_rules* head = NULL;
-	_rules* tail = NULL;
-	_formulas* curr;
-	
-	assert(fmls);
-	
-	head = tail = (_rules*)malloc(sizeof(_rules));
-	memset(head, 0, sizeof(_rules));
-	
-	while(fmls)
-	{
-		tail->remained_rules = convert_rule(fmls->curr_formula);
-		tail = tail->remained_rules;
-		
-		curr = fmls;
-		fmls = curr->remained_formulas;
-		free(curr);
-	}
-	
-	tail = head;
-	head = head->remained_rules;
-	free(tail);//borrow `tail` to store pre-patch pointer temporary 
-	
-	return head;
-}
-
-_rules* convert_rule(_formula* fml)
-{
-	assert(fml);
-	
-	_rules* rules = (_rules*)malloc(sizeof(_rules));
-	memset(rules, 0, sizeof(_rules));
-	
-	switch(fml->formula_type)
-	{
-	case IMPL://most frequent
-		convert_rule_r(rules,fml->subformula_l,CONJ);
-		convert_rule_r(rules,fml->subformula_r,DISJ);
-		free(fml);
-		break;
-		
-	case ATOM:
-		fml = composite_bool(NEGA,fml,NULL);
-		fml = composite_bool(NEGA,fml,NULL);
-	case NEGA:
-	case DISJ:
-		convert_rule_r(rules,fml,DISJ);//  ~A == :- A
-		break;
-	
-	default:
-		assert(0);
-	}
-	
-	return rules;
-}
-
-_formulas* convert_rule_r(_rules* rules, _formula* fml,
-							FORMULA_TYPE commutative_type)
-{
-	assert(rules);
-	assert(fml);
-	assert(commutative_type == CONJ || commutative_type == DISJ);
-	
-	_formulas* fmls = NULL;
-	
-	switch(fml->formula_type)
-	{
-	case ATOM:
-		if(commutative_type == CONJ)
-		{
-			if(fml->predicate_id != PRED_TRUE)// A ^ TRUE == A
-				rules->body = push_formulas(fml,rules->body);
-		}
-		else
-		{
-			if(fml->predicate_id != PRED_FALSE)// A v FALSE == A
-				rules->head = push_formulas(fml,rules->head);
-		}
-		break;
-
-	case NEGA:
-		if(commutative_type == CONJ)
-		{
-			rules->body = push_formulas(fml,rules->body);
-		}
-		else
-		{
-			if(fml->subformula_l->formula_type == ATOM)//reversing Cabalar L3 
-			{
-				rules->body = push_formulas(composite_bool(NEGA,fml,NULL),
-											rules->body);
-			}
-			else
-			{
-				rules->body = push_formulas(fml->subformula_l,rules->body);
-				free(fml);
-			}
-		}
-		break;
-
-	case CONJ:
-		if(commutative_type == CONJ)//recursive
-		{
-			convert_rule_r(rules, fml->subformula_l, commutative_type), 
-			convert_rule_r(rules, fml->subformula_r, commutative_type);
-			free(fml);
-		}
-		else
-		{
-			assert(0);
-		}
-		break;
-
-	case DISJ:
-		if(commutative_type == DISJ)
-		{
-			convert_rule_r(rules, fml->subformula_l, commutative_type), 
-			convert_rule_r(rules, fml->subformula_r, commutative_type);
-			free(fml);
-		}
-		else
-		{
-			assert(0);
-		}
-		break;
-
-	default:
-		assert(0);
-	}
-	
-	return fmls;
-}
-
-int check_rule(const _formulas* head, const _formulas* body)
-{
-	//output: 0 - OK, -1 - need to delete
-	const _formulas *p, *q;
-	_formula phi;
-
-	phi.formula_type = NEGA;
-
-	for (p=body; p; p=p->remained_formulas)
-	{
-		assert(p->curr_formula);
-		for (q=head; q; q=q->remained_formulas)
-		{
-			assert(q->curr_formula);
-			if (compare_formula(p->curr_formula,q->curr_formula))
-				return -1;
-		}
-
-		switch (p->curr_formula->formula_type)
-		{
-		case ATOM:
-			phi.subformula_l = p->curr_formula;
-			for (q=p->remained_formulas; q; q=q->remained_formulas)
-			{
-				assert(q->curr_formula);
-				if (compare_formula(&phi,q->curr_formula))
-					return -1;
-			}
-			break;
-		case NEGA:
-			for (q=p->remained_formulas; q; q=q->remained_formulas)
-			{
-				assert(q->curr_formula);
-				if (compare_formula(p->curr_formula->subformula_l,q->curr_formula))
-					return -1;
-			}
-			break;
-		default:
-			assert(0);
-		}
-	}
-	return 0;
-}
-
-void output_rules(FILE* out, const _rules* rules)
-{
-	const _rules* r;
-	_formulas* lit;
-
-	for (r=rules; r; r=r->remained_rules)
-	{
-		for (lit=r->head; lit; lit=lit->remained_formulas)
-		{
-			if (lit!=r->head) {
-				fprintf( out, " | " );
-			}
-			output_formula( out, lit->curr_formula );
-		}
-
-		if (NULL!=r->body) fprintf( out, " :- " );
-
-		for (lit=r->body; lit; lit=lit->remained_formulas)
-		{
-			if (lit!=r->body) {
-				fprintf( out, ", " );
-			}
-			
-			if(lit->curr_formula->formula_type == NEGA)
-			{
-				if(lit->curr_formula->subformula_l->formula_type == NEGA)
-				{
-					fprintf(out, "not _");
-					output_formula(out, 
-							lit->curr_formula->subformula_l->subformula_l);
-				}
-				else
-				{
-					fprintf(out, "_");
-					output_formula( out, lit->curr_formula->subformula_l );
-				}
-			}
-			else
-			{
-				output_formula( out, lit->curr_formula );
-			}
-		}
-		fprintf( out, ".\n" );
-	}
-}
-
 //other
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -1095,4 +892,61 @@ _formula* double_negation(_formula* phi, const int* int_preds, int num_ip)
     }
 
     return phi;
+}
+
+_formula* 
+minimal_simu(_formula* phi, const int* int_preds, int num_ip,
+		 const _formula* reff )
+{
+    assert(phi);
+
+    if (num_ip <= 0)//No internal predicates, fast return.
+    {
+        return phi;
+    }
+
+    switch (phi->formula_type)
+    {
+	case ATOM:
+		return phi;
+	
+    case NEGA:
+        assert(phi->subformula_l);
+        if ( ATOM == phi->subformula_l->formula_type &&
+             in_list ( int_preds, num_ip, phi->subformula_l->predicate_id ) )
+        {
+			/* internal predicates 
+			 * -F ----> (F->reff)
+			 */
+			phi->formula_type = IMPL;
+			phi->subformula_r = copy_formula(reff);
+        }
+        else
+        {
+            phi->subformula_l = minimal_simu(phi->subformula_l, 
+												int_preds, num_ip, reff );
+        }
+        return phi;
+		
+    case CONJ:
+    case DISJ:
+        assert ( phi->subformula_l );
+        assert ( phi->subformula_r );
+        phi->subformula_l = minimal_simu (phi->subformula_l, 
+												int_preds, num_ip, reff );
+        phi->subformula_r = minimal_simu (phi->subformula_r, 
+												int_preds, num_ip, reff );
+        return phi;
+		
+    case UNIV:
+    case EXIS:
+        assert ( phi->subformula_l );
+        phi->subformula_l = minimal_simu (phi->subformula_l, 
+												int_preds, num_ip, reff );
+        return phi;
+		
+    default:
+        assert(0);
+    }
+    return NULL;
 }

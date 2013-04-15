@@ -6,7 +6,6 @@
 //#define DEBUG
 
 #ifdef DEBUG
-#include "style.h"
 #define DBPRINTF(...) printf(__VA_ARGS__)
 #else
 #define DBPRINTF(...) 
@@ -149,7 +148,7 @@ _formula* Cabalar_IRF(_formula* originFml)//Implementation, Right PRED_FALSE
 	assert(originFml->subformula_r->predicate_id == PRED_FALSE);
 	
 	_formula* L = originFml->subformula_l;
-	_formula* f = Cabalar_Negative(composite_bool(NEGA,L,NULL));
+	_formula* f = convert_negative_normal_form(composite_bool(NEGA,L,NULL));
 	
 	//cleanup
 	free(originFml->subformula_r);
@@ -225,7 +224,7 @@ _formula* Cabalar_N3(_formula* originFml)
     assert(originFml->subformula_l->subformula_l);//-F
     assert(originFml->subformula_l->subformula_l->subformula_l);//F
 
-    _formula* _F = Cabalar_Negative( originFml->subformula_l->subformula_l );
+    _formula* _F = convert_negative_normal_form( originFml->subformula_l->subformula_l );
 
     //cleanup
     free(originFml->subformula_l);//--F
@@ -249,8 +248,8 @@ _formula* Cabalar_N4(_formula* originFml)
     _formula* G = originFml->subformula_l->subformula_r;
 
     //-F v -G
-    _formula* _F = Cabalar_Negative( composite_bool(NEGA, F, NULL) );
-    _formula* _G = Cabalar_Negative( composite_bool(NEGA, G, NULL) );
+    _formula* _F = convert_negative_normal_form( composite_bool(NEGA, F, NULL) );
+    _formula* _G = convert_negative_normal_form( composite_bool(NEGA, G, NULL) );
     _formula* f  = composite_bool(DISJ, _F, _G);
 
     //cleanup
@@ -275,8 +274,8 @@ _formula* Cabalar_N5(_formula* originFml)
     _formula* G = originFml->subformula_l->subformula_r;
 
     //-F v -G
-    _formula* _F = Cabalar_Negative( composite_bool(NEGA, F, NULL) );
-    _formula* _G = Cabalar_Negative( composite_bool(NEGA, G, NULL) );
+    _formula* _F = convert_negative_normal_form( composite_bool(NEGA, F, NULL) );
+    _formula* _G = convert_negative_normal_form( composite_bool(NEGA, G, NULL) );
     _formula* f  = composite_bool(CONJ, _F, _G);
 
     //cleanup
@@ -301,9 +300,9 @@ _formula* Cabalar_N6(_formula* originFml)
     _formula* G = originFml->subformula_l->subformula_r;
 
     //-F v -G
-    _formula* _F = Cabalar_Negative( composite_bool(NEGA, F, NULL) );
-    _formula* __F= Cabalar_Negative( composite_bool(NEGA, _F, NULL) );
-    _formula* _G = Cabalar_Negative( composite_bool(NEGA, G, NULL) );
+    _formula* _F = convert_negative_normal_form( composite_bool(NEGA, F, NULL) );
+    _formula* __F= convert_negative_normal_form( composite_bool(NEGA, _F, NULL) );
+    _formula* _G = convert_negative_normal_form( composite_bool(NEGA, G, NULL) );
     _formula* f  = composite_bool(CONJ, __F, _G);
 
     //cleanup
@@ -464,7 +463,7 @@ _formulas* Cabalar_L5(_formula* originFml)
     _formula* K = originFml->subformula_r;
 
     //-F ^ H -> K
-    _formula* _F = Cabalar_Negative(
+    _formula* _F = convert_negative_normal_form(
 						composite_bool(NEGA, copy_formula(F), NULL) 
 				   );
     _formula* f1_L = composite_bool(CONJ, _F, copy_formula(H));
@@ -475,7 +474,7 @@ _formulas* Cabalar_L5(_formula* originFml)
     _formula* f2 = composite_bool(IMPL, f2_L, copy_formula(K));
 
     //H -> F v -G v K
-    _formula* _G  = Cabalar_Negative( composite_bool(NEGA, G, NULL) );
+    _formula* _G  = convert_negative_normal_form( composite_bool(NEGA, G, NULL) );
     _formula* f3_R_L = composite_bool(DISJ, F, _G);
     _formula* f3_R = composite_bool(DISJ, f3_R_L, K);
     _formula* f3   = composite_bool(IMPL, H, f3_R);
@@ -637,10 +636,10 @@ _formulas* Cabalar_R5(_formula* originFml)
     _formula* f1   = composite_bool(IMPL, f1_L, f1_R);
 
     //-H ^ F -> -G v K
-    _formula* _H  = Cabalar_Negative( 
+    _formula* _H  = convert_negative_normal_form( 
 						composite_bool(NEGA, copy_formula(H), NULL) 
 					);
-    _formula* _G  = Cabalar_Negative(
+    _formula* _G  = convert_negative_normal_form(
 						composite_bool(NEGA, copy_formula(G), NULL)
 					);
     _formula* f2_L = composite_bool(CONJ, _H, copy_formula(F));
@@ -991,7 +990,7 @@ _formulas* Cabalar_Trans(_formula* fml)
     return NULL;//No rules in Cabalar. (2005) fix this formula, end.
 }
 
-_formula* Cabalar_Negative(_formula* fml)
+_formula* convert_negative_normal_form(_formula* fml)
 {
     assert(fml);
 	assert(fml->formula_type == ATOM || fml->formula_type == NEGA ||
@@ -1048,19 +1047,19 @@ _formula* Cabalar_Negative(_formula* fml)
 		//   fml->formula_type == DISJ ||
 		//   fml->formula_type == IMPL)
 	{
-		fml->subformula_l = Cabalar_Negative(fml->subformula_l);
-		fml->subformula_r = Cabalar_Negative(fml->subformula_r);
+		fml->subformula_l = convert_negative_normal_form(fml->subformula_l);
+		fml->subformula_r = convert_negative_normal_form(fml->subformula_r);
 	}
     
     return fml;
 }
 
-_formulas* convert_Cabalar_Negative(_formulas* fmls)
+_formulas* convert_negative_normal_forms(_formulas* fmls)
 {
     _formulas* currFml = fmls;
     while(currFml != NULL)
     {
-        currFml->curr_formula = Cabalar_Negative(currFml->curr_formula);
+        currFml->curr_formula = convert_negative_normal_form(currFml->curr_formula);
         currFml = currFml->remained_formulas;
     }
     return fmls;
@@ -1076,7 +1075,7 @@ _formulas* convert_Cabalar(_formulas* fmls)
     _formulas* finalFmls = NULL;
     _formula* fml = NULL;
 
-    fmls = convert_Cabalar_Negative(fmls);
+    fmls = convert_negative_normal_forms(fmls);
 	
     while(fmls != NULL)
     {

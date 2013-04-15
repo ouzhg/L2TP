@@ -15,6 +15,7 @@ void destroy_vocabulary(void);
 bool in_list(const int* list, int len, int obj);
 bool is_negative(const _formula* phi, 
 				  const int* sm_preds, int num_sp, bool negative);
+bool is_universal(_formula* fml);
 
 //symbol operations
 ///////////////////////////////////////////////////////////////////////////////
@@ -74,27 +75,12 @@ int		   size_formulas(_formulas* fmls);
 
 void output_formulas(FILE* out, const _formulas* fmls);
 
-//rules
-///////////////////////////////////////////////////////////////////////////////
-_rules* convert_rules(_formulas* fmls);
-_rules* convert_rule(_formula* fml);
-_formulas* convert_rule_r(_rules* rules, _formula* fml, FORMULA_TYPE type);
-
-int check_rule(const _formulas* head, const _formulas* body);
-void output_rules(FILE* out, const _rules* rules);
-
-//dlp
-///////////////////////////////////////////////////////////////////////////////
-_dlp* convert_dlp(const _formula* phi, const int* int_preds, int num_ip);
-_dlp* normalize_dlp(const _rules* rules);
-void output_dlp(FILE* out, const _dlp* dlp);
-
-void simplicy_clause( _formulas** p_clause);
-int format_clause(_formulas** p_clause, FORMULA_TYPE cls_type);
-
 //formula transforms
 ///////////////////////////////////////////////////////////////////////////////
 void output_extraDefinition(FILE* out);
+
 _formula* double_negation(_formula* phi, const int* int_preds, int num_ip);
+_formula* minimal_simu(_formula* phi, const int* int_preds, int num_ip,
+						 const _formula* reff);
 
 #endif

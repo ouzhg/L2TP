@@ -41,11 +41,10 @@ _formulas* Cabalar_R5(_formula* originFml);
 int Commutative_Trans(_formula* root, _formula* curr,
 						FORMULA_TYPE commutativeSymbol);
 
-_formula * Cabalar_Negative(_formula* fml);
-_formulas* convert_Cabalar_Negative(_formulas* fmls);
+_formula * convert_negative_normal_form(_formula* fml);//Negative Normal Form
+_formulas* convert_negative_normal_forms(_formulas* fmls);
 
 _formulas* Cabalar_Trans(_formula* fml);
- 
 _formulas* convert_Cabalar(_formulas* fmls);
 
 #endif
