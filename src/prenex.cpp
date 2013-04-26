@@ -115,24 +115,12 @@ convert_prenex(_formula* fml)
             {
                 type_curr = (type_curr==UNIV)?EXIS:UNIV;
             }
-			
-			//priority
-			priority_l = 0;
-			priority_r = 0;
-			
-			if(fml_l->formula_type == type_curr) priority_l+=2;
-			if(fml_r->formula_type == type_curr) priority_r+=2;
-			if(fml_l->formula_type == type_curr && fml_r->formula_type == type_curr)
-			{
-                if(fml_l->variable_id  < fml_r->variable_id)
-                    priority_l+=1;
-                if(fml_l->variable_id  > fml_r->variable_id)
-                    priority_r+=1;
-			}
-			
-            //extract quantifier(swap value)
-			if(priority_l == priority_r)
-			{
+            
+            //special rules
+            if((fml_l->variable_id == fml_r->variable_id) &&
+               (fml->formula_type == CONJ && fml_l->formula_type == fml_r->formula_type == UNIV) ||
+               (fml->formula_type == DISJ && fml_l->formula_type == fml_r->formula_type == EXIS))
+            {
 				fml_r = fml_r->subformula_l;
 				free(fml_curr->subformula_r);
                 
@@ -149,8 +137,24 @@ convert_prenex(_formula* fml)
                 
                 fml_curr = fml_l;
                 continue;
+            }
+			
+			//priority
+			priority_l = 0;
+			priority_r = 0;
+			
+			if(fml_l->formula_type == type_curr) priority_l+=2;
+			if(fml_r->formula_type == type_curr) priority_r+=2;
+			if(fml_l->formula_type == fml_r->formula_type == type_curr)
+			{
+                if(fml_l->variable_id  < fml_r->variable_id)
+                    priority_l+=1;
+                if(fml_l->variable_id  > fml_r->variable_id)
+                    priority_r+=1;
 			}
-			if(priority_l > priority_r)
+			
+            //extract quantifier(swap value)
+			if(priority_l >= priority_r)
 			{
 				if( find_var_formula(fml_r, fml_l->variable_id) == true)
 				{
@@ -171,7 +175,7 @@ convert_prenex(_formula* fml)
                 fml_curr = fml_l;
                 continue;
 			}
-			if(priority_l < priority_r)
+			else
 			{
 				if( find_var_formula(fml_l, fml_r->variable_id) == true)
 				{
